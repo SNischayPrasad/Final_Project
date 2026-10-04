@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Iris AI Predictor</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <div class="card">
+
+
+        <h1>🌸 Iris AI Predictor</h1>
+
+        <p class="subtitle">
+            Machine Learning Flower Classification
+        </p>
+
+
+        <div class="form">
+
+
+            <label>
+                Sepal Length (cm)
+            </label>
+
+            <input
+                type="number"
+                id="sepal_length"
+                step="0.1"
+                placeholder="Example: 5.1"
+            >
+
+
+            <label>
+                Sepal Width (cm)
+            </label>
+
+            <input
+                type="number"
+                id="sepal_width"
+                step="0.1"
+                placeholder="Example: 3.5"
+            >
+
+
+            <label>
+                Petal Length (cm)
+            </label>
+
+            <input
+                type="number"
+                id="petal_length"
+                step="0.1"
+                placeholder="Example: 1.4"
+            >
+
+
+            <label>
+                Petal Width (cm)
+            </label>
+
+            <input
+                type="number"
+                id="petal_width"
+                step="0.1"
+                placeholder="Example: 0.2"
+            >
+
+
+            <button
+                onclick="predictFlower()"
+            >
+                Predict Flower
+            </button>
+
+
+        </div>
+
+
+        <div
+            id="result"
+            class="result"
+        >
+
+            Enter flower measurements
+            and click Predict.
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+async function predictFlower() {
+
+
+    const sepalLength =
+        document.getElementById(
+            "sepal_length"
+        ).value;
+
+
+    const sepalWidth =
+        document.getElementById(
+            "sepal_width"
+        ).value;
+
+
+    const petalLength =
+        document.getElementById(
+            "petal_length"
+        ).value;
+
+
+    const petalWidth =
+        document.getElementById(
+            "petal_width"
+        ).value;
+
+
+    if (
+        !sepalLength ||
+        !sepalWidth ||
+        !petalLength ||
+        !petalWidth
+    ) {
+
+        document.getElementById(
+            "result"
+        ).innerHTML =
+            "⚠️ Please enter all values.";
+
+        return;
+
+    }
+
+
+    const result =
+        document.getElementById(
+            "result"
+        );
+
+
+    result.innerHTML =
+        "🔄 Predicting...";
+
+
+    try {
+
+
+        const response =
+            await fetch(
+                "/predict",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        sepal_length:
+                            parseFloat(
+                                sepalLength
+                            ),
+
+                        sepal_width:
+                            parseFloat(
+                                sepalWidth
+                            ),
+
+                        petal_length:
+                            parseFloat(
+                                petalLength
+                            ),
+
+                        petal_width:
+                            parseFloat(
+                                petalWidth
+                            )
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+
+
+            let probabilityText = "";
+
+
+            for (
+                const [flower, probability]
+                of Object.entries(
+                    data.probabilities
+                )
+            ) {
+
+                probabilityText +=
+                    `<p>
+                        ${flower}:
+                        ${probability}%
+                    </p>`;
+
+            }
+
+
+            result.innerHTML = `
+
+                <h2>
+                    🌸 ${data.prediction}
+                </h2>
+
+                <p>
+                    Confidence:
+                    <strong>
+                        ${data.confidence}%
+                    </strong>
+                </p>
+
+                <hr>
+
+                <h3>
+                    Prediction Probabilities
+                </h3>
+
+                ${probabilityText}
+
+            `;
+
+
+        } else {
+
+
+            result.innerHTML =
+                "❌ Error: " +
+                data.error;
+
+        }
+
+
+    } catch (error) {
+
+
+        result.innerHTML =
+            "❌ Could not connect to the server.";
+
+    }
+
+}
+
+</script>
+
+
+</body>
+
+</html>
